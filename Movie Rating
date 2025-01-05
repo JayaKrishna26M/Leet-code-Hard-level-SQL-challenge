@@ -1,0 +1,35 @@
+-- Part 1: Find the user who has rated the most movies
+WITH UserRatingCount AS (
+    SELECT user_id, COUNT(DISTINCT movie_id) AS rating_count
+    FROM MovieRating
+    GROUP BY user_id
+),
+TopUser AS (
+    SELECT u.name
+    FROM Users u
+    JOIN UserRatingCount urc ON u.user_id = urc.user_id
+    ORDER BY urc.rating_count DESC, u.name
+    LIMIT 1
+),
+
+-- Part 2: Find the movie with the highest average rating in February 2020
+MovieAvgRating AS (
+    SELECT mr.movie_id, 
+           m.title,
+           AVG(mr.rating) AS avg_rating
+    FROM MovieRating mr
+    JOIN Movies m ON mr.movie_id = m.movie_id
+    WHERE mr.created_at BETWEEN '2020-02-01' AND '2020-02-29'
+    GROUP BY mr.movie_id, m.title
+),
+TopMovie AS (
+    SELECT title
+    FROM MovieAvgRating
+    ORDER BY avg_rating DESC, title
+    LIMIT 1
+)
+
+-- Final result
+SELECT (SELECT name FROM TopUser) AS results
+UNION ALL
+SELECT (SELECT title FROM TopMovie);
